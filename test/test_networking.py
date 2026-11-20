@@ -530,6 +530,16 @@ class TestHTTPRequestHandler(TestRequestHandlerBase):
             assert b'cookie: test=ytdlp' not in data.lower()
             assert b'cookie: test=test3' in data.lower()
 
+    def test_authorization_header_removed_on_cross_origin_redirect(self, handler):
+        with handler() as rh:
+            res = validate_and_send(
+                rh, Request(
+                    f'http://127.0.0.1:{self.http_port}/308-to-headers',
+                    headers={'Authorization': 'Bearer audit-test-secret'}))
+            data = res.read().decode()
+            res.close()
+            assert 'authorization: bearer audit-test-secret' not in data.lower()
+
     def test_redirect_loop(self, handler):
         with handler() as rh:
             with pytest.raises(HTTPError, match='redirect loop'):
