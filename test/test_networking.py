@@ -498,6 +498,15 @@ class TestHTTPRequestHandler(TestRequestHandlerBase):
             assert expected[1] == res.headers.get('method')
             assert expected[2] == ('content-length' in headers.decode().lower())
 
+    def test_request_authorization_header_cross_origin_redirect(self, handler):
+        # Authorization must not be forwarded when the redirect changes host.
+        with handler() as rh:
+            res = validate_and_send(
+                rh, Request(
+                    f'http://127.0.0.1:{self.http_port}/308-to-headers',
+                    headers={'Authorization': 'Basic dXNlcjpwYXNz'})).read().decode()
+            assert 'authorization: basic dXNlcjpwYXNz' not in res.lower()
+
     def test_request_cookie_header(self, handler):
         # We should accept a Cookie header being passed as in normal headers and handle it appropriately.
         with handler() as rh:
