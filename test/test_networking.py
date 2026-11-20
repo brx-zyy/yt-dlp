@@ -540,6 +540,16 @@ class TestHTTPRequestHandler(TestRequestHandlerBase):
             res.close()
             assert 'authorization: bearer audit-test-secret' not in data.lower()
 
+    def test_authorization_header_preserved_on_same_origin_redirect(self, handler):
+        with handler() as rh:
+            res = validate_and_send(
+                rh, Request(
+                    f'http://127.0.0.1:{self.http_port}/redirect_302',
+                    headers={'Authorization': 'Bearer audit-test-secret'}))
+            data = res.read().decode()
+            res.close()
+            assert 'authorization: bearer audit-test-secret' in data.lower()
+
     def test_redirect_loop(self, handler):
         with handler() as rh:
             with pytest.raises(HTTPError, match='redirect loop'):
